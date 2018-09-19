@@ -48,7 +48,7 @@ public class Neighbours extends Application {
     void updateWorld() {
         // % of surrounding neighbours that are like me
         final double threshold = 0.7;
-        // TODO
+        // TODO HELLO THIS IS A TEST
 
         //int i = 1;
         //int j = 1;
