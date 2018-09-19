@@ -61,6 +61,7 @@ public class Neighbours extends Application {
         State[][] satisfactionMatrix = getSatisfactionMatrix(world, threshold);
         //out.print(satisfactionMatrix.length);
         //out.print(satisfactionMatrix[1][1]);
+        out.println(Arrays.toString(satisfactionMatrix[15]));
 
 
         int nNotSatisfied = nUnsatisfied(satisfactionMatrix);
@@ -145,7 +146,7 @@ public class Neighbours extends Application {
         for (int i = 0; i < world.length; i++) {
             for (int j = 0; j < world.length; j++) {
                 State stateCell = satisfactionMatrix[i][j];
-                if (stateCell == State.UNSATISFIED){
+                if (stateCell == State.NA){
                     NAArray[n][0] = i;
                     NAArray[n][1] = j;
                     n++;
