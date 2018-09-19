@@ -60,7 +60,7 @@ public class Neighbours extends Application {
         State[][] satisfactionMatrix = getSatisfactionMatrix(world, threshold);
         //out.print(satisfactionMatrix.length);
         //out.print(satisfactionMatrix[1][1]);
-        out.println(Arrays.toString(satisfactionMatrix[15]));
+        //out.println(Arrays.toString(satisfactionMatrix[15]));
 
 
         int nNotSatisfied = nUnsatisfied(satisfactionMatrix);
@@ -217,9 +217,9 @@ public class Neighbours extends Application {
         boolean satisfaction = false;
         //int length = (int)Math.sqrt(nLocations);
         int length = world.length;
-        int nRed = 0;
-        int nBlue = 0;
-        int nWhite = 0;
+        double nRed = 0;
+        double nBlue = 0;
+        double nWhite = 0;
 
 
         int sum = 0;
@@ -241,19 +241,19 @@ public class Neighbours extends Application {
             }
         }
 
-        int satisfactionLevel = 0;
+        double satisfactionLevel = 0;
 
         if (nRed + nBlue != 1) {
 
 
             if (world[i][j] == Actor.RED) {
-                satisfactionLevel = ((nRed - 1) / (nBlue + nRed - 1)) * 100;
+                satisfactionLevel = ((nRed - 1) / (nBlue + nRed - 1));
             } else if (world[i][j] == Actor.BLUE) {
-                satisfactionLevel = ((nBlue - 1) / (nBlue + nRed - 1)) * 100;
+                satisfactionLevel = ((nBlue - 1) / (nBlue + nRed - 1));
             }
         }
 
-        if (satisfactionLevel >= threshold * 100) {
+        if (satisfactionLevel >= threshold) {
             satisfaction = true;
         }
 
