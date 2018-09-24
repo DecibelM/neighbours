@@ -47,195 +47,58 @@ public class Neighbours extends Application {
     // (i.e move unsatisfied) approx each 1/60 sec.
     void updateWorld() {
         // % of surrounding neighbours that are like me
-        final double threshold = 0.7;
+        final double threshold = 0.33;
 
-        //int i = 1;
-        //int j = 1;
-        //boolean active = activeCell(world, i, j);
-        //out.print("Active " + active);
+        State[][] satisfactionMatrix = getSatisfactionMatrix(world, threshold); //Create matrix with satisfied/unsatisfied.
 
-        //boolean satisfaction = checkSatisfaction(world, i, j, threshold);
-        //out.println(" Satisfaction: " + satisfaction);
+        int nNotSatisfied = nUnsatisfied(satisfactionMatrix); //Counts number of unsatisfied cells.
+        int nNa = nNA(satisfactionMatrix); // Counts number of NA cells
+        int[][] unsArray = unsatisfiedArrays(satisfactionMatrix, nNotSatisfied); //Puts coordinates for unsatisfied cells in an array.
+        int[][] NAArray = NAArrays(satisfactionMatrix, nNa); //Puts coordinates for unsatisfied cells in an array.
 
-        State[][] satisfactionMatrix = getSatisfactionMatrix(world, threshold);
-        //out.print(satisfactionMatrix.length);
-        //out.print(satisfactionMatrix[1][1]);
-        //out.println(Arrays.toString(satisfactionMatrix[15]));
-
-
-        int nNotSatisfied = nUnsatisfied(satisfactionMatrix);
-        int nNa = nNA(satisfactionMatrix);
-        //out.println(nNotSatisfied);
-        //out.println(nNa);
-
-        int[][] unsArray = unsatisfiedArrays(satisfactionMatrix, nNotSatisfied);
-        int[][] NAArray = NAArrays(satisfactionMatrix, nNa);
-        //out.println(Arrays.toString(unsArray[2]));
-        //out.println(Arrays.toString(NAArray[2]));
-
-        world = shuffleUnsatisfied(world, unsArray, NAArray);
-
+        world = shuffleUnsatisfied(world, unsArray, NAArray); //Shuffles the elements in the NA Array to give the unsatisfied cells new coordinates.
     }
 
     // This method initializes the world variable with a random distribution of Actors
     // Method automatically called by JavaFX runtime (before graphics appear)
     // Don't care about "@Override" and "public" (just accept for now)
     @Override
+
+    //-----------------
+
     public void init() {
         //test();    // <---------------- Uncomment to TEST!
 
         // %-distribution of RED, BLUE and NONE
+        double[] dist = {0.49, 0.49, 0.02};
 
         // Number of locations (places) in world (square)
-        int nLocations = 900;
-        double[] dist = {0.25, 0.25, 0.50};
+        int nLocations = 950;
 
         Actor[] distArray = distribution(nLocations, dist); //Generates array with correct distribution.
-        //out.println(Arrays.toString(distArray));
-        // ---------------------------------------------
         distArray = shuffle(distArray); //Shuffles array
-        //out.println(Arrays.toString(distArray));
         world = toMatrix(distArray, nLocations, world); //Generates the start world.
-
-
         // Should be last
         fixScreenSize(nLocations);
     }
 
-
     // ------- Methods ------------------
 
     // TODO write the methods here, implement/test bottom up
-    Actor[][] shuffleUnsatisfied(Actor[][] world, int[][] USArray, int[][] NAArray) {
-        for (int i = NAArray.length; i > 0; i--) {
-            int k = rand.nextInt(i);
-            int[] tmp = NAArray[k];
-            NAArray[k] = NAArray[i - 1];
-            NAArray[i - 1] = tmp;
-        }
 
-        for (int j = 0; j < USArray.length; j++){
-            Actor transfer = world[NAArray[j][0]][NAArray[j][1]];
-            world[NAArray[j][0]][NAArray[j][1]] = world[USArray[j][0]][USArray[j][1]];
-            world[USArray[j][0]][USArray[j][1]] = transfer;
-        }
-
-        return world;
-    }
-
-    int[][] unsatisfiedArrays(State[][] satisfactionMatrix, int nNotSatisfied){
-        int[][] unsArray = new int[nNotSatisfied][2];
-        int n = 0;
-        for (int i = 0; i < world.length; i++) {
-            for (int j = 0; j < world.length; j++) {
-                State stateCell = satisfactionMatrix[i][j];
-                if (stateCell == State.UNSATISFIED){
-                    unsArray[n][0] = i;
-                    unsArray[n][1] = j;
-                    n++;
-                }
-            }
-        }
-        return unsArray;
-    }
-
-    int[][] NAArrays(State[][] satisfactionMatrix, int nNA){
-        int[][] NAArray = new int[nNA][2];
-        int n = 0;
-        for (int i = 0; i < world.length; i++) {
-            for (int j = 0; j < world.length; j++) {
-                State stateCell = satisfactionMatrix[i][j];
-                if (stateCell == State.NA){
-                    NAArray[n][0] = i;
-                    NAArray[n][1] = j;
-                    n++;
-                }
-            }
-        }
-        return NAArray;
-    }
-
-    int nUnsatisfied(State[][] satisfactionMatrix){
-        int x = 0;
-        for (int i = 0; i < world.length; i++) {
-            for (int j = 0; j < world.length; j++) {
-                State stateCell = satisfactionMatrix[i][j];
-                if (stateCell == State.UNSATISFIED){
-                    x++;
-                }
-            }
-        }
-        return x;
-    }
-
-    int nNA(State[][] satisfactionMatrix){
-        int y = 0;
-        for (int i = 0; i < world.length; i++) {
-            for (int j = 0; j < world.length; j++) {
-                State stateCell = satisfactionMatrix[i][j];
-                if (stateCell == State.NA){
-                    y++;
-                }
-            }
-        }
-        return y;
-    }
-
-
-
-
-    State[][] getSatisfactionMatrix(Actor[][] world, final double threshold) {
-
-        State[][] satisfactionMatrix = new State[world.length][world.length];
-        //int i = 0;
-        //int j = world.length -1;
-
-        for (int i = 0; i < world.length; i++) {
-            for (int j = 0; j < world.length; j++) {
-                boolean active = activeCell(world, i, j);
-                //out.print("Active " + active);
-                //TODO if statement for putting in enum satisfaction into world matrix.
-                if (active == true) {
-                    boolean satisfaction = checkSatisfaction(world, i, j, threshold);
-                    //out.println(" Satisfaction: " + satisfaction);
-
-                    if (satisfaction == true) {
-                        satisfactionMatrix[i][j] = State.SATISFIED;
-                    } else {
-                        satisfactionMatrix[i][j] = State.UNSATISFIED;
-                    }
-                } else {
-                    satisfactionMatrix[i][j] = State.NA;
-                }
-            }
-        }
-        //out.println(satisfactionMatrix[0][0]);
-        return satisfactionMatrix;
-    }
-
-    boolean checkSatisfaction(Actor[][] world, int i, int j, final double threshold) {
+    boolean checkSatisfaction(Actor[][] world, int i, int j, final double threshold) { //Checks is an element is satisfied/unsatisfied/NA.
         boolean satisfaction = false;
-        //int length = (int)Math.sqrt(nLocations);
         int length = world.length;
         double nRed = 0;
         double nBlue = 0;
-        double nWhite = 0;
 
-
-        int sum = 0;
         for (int x = i - 1; x < i + 2; x++) {
             for (int y = j - 1; y < j + 2; y++) {
-                if (x < 0 || x > length - 1 || y < 0 || y > length - 1) {
-                    //out.println("outof bounds" + x + y);
-                    nWhite++;
-                } else {
-                    //out.println("used:" + x + y);
+                if (x >= 0 && x <= length - 1 && y >= 0 && y <= length - 1) {
                     if (world[x][y] == Actor.RED) {
                         nRed++;
                     } else if (world[x][y] == Actor.BLUE) {
                         nBlue++;
-                    } else {
-                        nWhite++;
                     }
                 }
             }
@@ -244,8 +107,6 @@ public class Neighbours extends Application {
         double satisfactionLevel = 0;
 
         if (nRed + nBlue != 1) {
-
-
             if (world[i][j] == Actor.RED) {
                 satisfactionLevel = ((nRed - 1) / (nBlue + nRed - 1));
             } else if (world[i][j] == Actor.BLUE) {
@@ -260,14 +121,13 @@ public class Neighbours extends Application {
         return satisfaction;
     }
 
-    boolean activeCell(Actor[][] world, int i, int j) {
+    boolean activeCell(Actor[][] world, int i, int j) { //Checks is a cell is active or not (NA or RED/BLUE)
         boolean active = false;
         if (world[i][j] != Actor.NONE) {
             active = true;
         }
         return active;
     }
-
 
     Actor[] distribution(int nLocations, double[] dist) { // Create array with correct distribution of actors.
         Actor[] distArray = new Actor[nLocations];
@@ -286,31 +146,127 @@ public class Neighbours extends Application {
 
     Actor[] shuffle(Actor[] array) { //Shuffles the array created in distribution.
         for (int i = array.length; i > 0; i--) {
-            int j = rand.nextInt(i);
-            Actor tmp = array[j];
-            array[j] = array[i - 1];
+            int k = rand.nextInt(i);
+            Actor tmp = array[k];
+            array[k] = array[i - 1];
             array[i - 1] = tmp;
         }
-
         return array;
     }
 
-    Actor[][] toMatrix(Actor[] distArray, int nLocations, Actor[][] world) { //TODO Method for array to matrix.
+    Actor[][] toMatrix(Actor[] distArray, int nLocations, Actor[][] world) { //Places the elements from the array into a matrix.
         int length = (int) Math.sqrt(nLocations);
-        //out.println(length);
-        world = new Actor[length][length]; //TODO Math.sqrt. How turn into int?
+        world = new Actor[length][length];
 
         int n = 0;
-
         for (int i = 0; i < length; i++) {
             for (int j = 0; j < length; j++) {
                 world[i][j] = distArray[n];
                 n++;
             }
         }
-        //for(int i = 0; i < length; i++) {
-        //    out.println(Arrays.toString(world[i]));
-        //}
+        return world;
+    }
+
+    State[][] getSatisfactionMatrix(Actor[][] world, final double threshold) { //Puts the elements satisfaction level in a matrix.
+        State[][] satisfactionMatrix = new State[world.length][world.length];
+
+        for (int i = 0; i < world.length; i++) {
+            for (int j = 0; j < world.length; j++) {
+                boolean active = activeCell(world, i, j);
+                if (active == true) {
+                    boolean satisfaction = checkSatisfaction(world, i, j, threshold);
+                    if (satisfaction == true) {
+                        satisfactionMatrix[i][j] = State.SATISFIED;
+                    } else {
+                        satisfactionMatrix[i][j] = State.UNSATISFIED;
+                    }
+                } else {
+                    satisfactionMatrix[i][j] = State.NA;
+                }
+            }
+        }
+        return satisfactionMatrix;
+    }
+
+    int[][] NAArrays(State[][] satisfactionMatrix, int nNA) { //Fills an array with the coordinates of the white spots
+        int[][] NAArray = new int[nNA][2];
+        int n = 0;
+        for (int i = 0; i < world.length; i++) {
+            for (int j = 0; j < world.length; j++) {
+                State stateCell = satisfactionMatrix[i][j];
+                if (stateCell == State.NA) {
+                    NAArray[n][0] = i;
+                    NAArray[n][1] = j;
+                    n++;
+                }
+            }
+        }
+        return NAArray;
+    }
+
+    int nNA(State[][] satisfactionMatrix) { //Counts # of NA spots.
+        int y = 0;
+        for (int i = 0; i < world.length; i++) {
+            for (int j = 0; j < world.length; j++) {
+                State stateCell = satisfactionMatrix[i][j];
+                if (stateCell == State.NA) {
+                    y++;
+                }
+            }
+        }
+        return y;
+    }
+
+    int[][] unsatisfiedArrays(State[][] satisfactionMatrix, int nNotSatisfied) { //Fills an array with the coordinates of the unsatisfied spots
+        int[][] unsArrays = new int[nNotSatisfied][2];
+        int n = 0;
+        for (int i = 0; i < world.length; i++) {
+            for (int j = 0; j < world.length; j++) {
+                State stateCell = satisfactionMatrix[i][j];
+                if (stateCell == State.UNSATISFIED) {
+                    unsArrays[n][0] = i;
+                    unsArrays[n][1] = j;
+                    n++;
+                }
+            }
+        }
+        return unsArrays;
+    }
+
+    int nUnsatisfied(State[][] satisfactionMatrix) { //Counts # of unsatisfied.
+        int x = 0;
+        for (int i = 0; i < world.length; i++) {
+            for (int j = 0; j < world.length; j++) {
+                State stateCell = satisfactionMatrix[i][j];
+                if (stateCell == State.UNSATISFIED) {
+                    x++;
+                }
+            }
+        }
+        return x;
+    }
+
+    Actor[][] shuffleUnsatisfied(Actor[][] world, int[][] USArrays, int[][] NAArrays) { //Shuffles the elements in the NA Array and gives the unsatisfied cells new coordinates.
+        for (int i = NAArrays.length; i > 0; i--) {
+            int k = rand.nextInt(i);
+            int[] tmp = NAArrays[k];
+            NAArrays[k] = NAArrays[i - 1];
+            NAArrays[i - 1] = tmp;
+        }
+        if (USArrays.length < NAArrays.length) {
+            for (int m = 0; m < USArrays.length; m++) {
+                Actor transfer = world[NAArrays[m][0]][NAArrays[m][1]];
+                world[NAArrays[m][0]][NAArrays[m][1]] = world[USArrays[m][0]][USArrays[m][1]];
+                world[USArrays[m][0]][USArrays[m][1]] = transfer;
+            }
+        } else {
+            for (int m = 0; m < NAArrays.length; m++) {
+                Actor transfer = world[NAArrays[m][0]][NAArrays[m][1]];
+                world[NAArrays[m][0]][NAArrays[m][1]] = world[USArrays[m][0]][USArrays[m][1]];
+                world[USArrays[m][0]][USArrays[m][1]] = transfer;
+            }
+        }
         return world;
     }
 
@@ -329,19 +285,6 @@ public class Neighbours extends Application {
         int size = testWorld.length;
 
         //Test distribution method distribution
-        int nLocations = 900;
-        double[] dist = {0.25, 0.25, 0.50};
-
-
-        Actor[] distArray = distribution(nLocations, dist);
-        //out.println(Arrays.toString(distArray));
-        // ---------------------------------------------
-        distArray = shuffle(distArray);
-        //out.println(Arrays.toString(distArray));
-        // TODO test methods
-        world = toMatrix(distArray, nLocations, world);
-
-
         exit(0);
     }
 
